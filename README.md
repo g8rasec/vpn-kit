@@ -71,16 +71,37 @@ instructions if it is missing.
 The script connects and prints a URL. Open it **in a browser** and complete
 the SSO login. Keep the terminal open — `Ctrl+C` disconnects.
 
-**On a server without a browser (headless):** the SSO login happens in your
-workstation's browser, through an SSH port-forward. In another terminal, on
-the workstation:
+**On a server without a browser (headless):** the SSO login happens in your workstation's browser, through an SSH port-forward.
 
-```bash
-ssh -L 8020:127.0.0.1:8020 <server>
+```text
+[ Browser (Workstation) ]
+         │
+         │ 1. Access http://127.0.0.1:8020 (SSO token redirect)
+         ▼
+[ Port 8020 (Workstation) ] ◄── (SSH listens here)
+         │
+         │ 2. Forwarded over secure SSH tunnel
+         ▼
+[ Port 8020 (Headless Server) ]
+         │
+         │ 3. Delivered locally
+         ▼
+[ openfortivpn / vpn-corp.sh ] ──► Tunnel Established! 🎉
 ```
 
-Keep that session open, open the URL printed by the script in the
-workstation's browser and finish the SSO — the tunnel comes up on the server.
+1. On your workstation, open an auxiliary terminal and run:
+   ```bash
+   ssh -L 8020:127.0.0.1:8020 <server-ip-or-host>
+   ```
+   *(Tip: If hostname resolution fails, use the server's local IP address, e.g., `192.168.1.10`).*
+
+2. On the server, run `./vpn-corp.sh`. It will listen for SAML on port 8020 and print a login URL.
+
+3. Copy that URL, open it in your workstation's browser, and complete the SSO authentication.
+
+4. Once the tunnel is established (`Tunnel is up and running`), the login token has been received and you can safely close the auxiliary SSH port-forwarding terminal.
+
+
 
 ### Lab VPN
 
