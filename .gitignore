@@ -1,0 +1,9 @@
+# VPN profiles contain certificates and private keys — never version them.
+# The config/ directory is just a drop zone: install.sh moves the profile to
+# /etc/openvpn/client/ and deletes the local copy.
+*.ovpn
+config/*
+!config/.gitkeep
+
+# Local configuration (see env.example for reference)
+.env
