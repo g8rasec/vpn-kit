@@ -12,7 +12,7 @@ install-sh
 Makefile
 Makefile.in
 missing
-openfortivpn
+/openfortivpn
 .dirstamp
 doc/*.1
 config.sub
