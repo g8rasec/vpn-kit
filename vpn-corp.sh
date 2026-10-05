@@ -21,10 +21,33 @@ if [ -z "$GATEWAY" ]; then
     exit 1
 fi
 
+if [ -z "${TMUX:-}" ]; then
+    if ! command -v tmux >/dev/null 2>&1; then
+        echo "tmux is required. Install it with: sudo apt-get install tmux"
+        exit 1
+    fi
+    # Quote the script path and resolved settings for tmux's shell command.
+    printf -v vpn_command '%q ' env \
+        "VPN_CORP_GATEWAY=$GATEWAY" "VPN_CORP_PORT=$PORT" \
+        "VPN_CORP_SAML_PORT=$SAML_PORT" "${REPO_DIR}/vpn-corp.sh"
+    echo "Opening tmux session 'vpn' (or attaching if it already exists)."
+    exec tmux new-session -A -s vpn "$vpn_command"
+fi
+
+SSH_HOST=""
+while [ -z "$SSH_HOST" ]; do
+    if ! read -r -p "SSH host/alias from your workstation (e.g. vpn-server): " SSH_HOST; then
+        echo "A terminal is required to enter the SSH host/alias."
+        exit 1
+    fi
+done
+
 echo "Connecting to ${GATEWAY}:${PORT} (SSO via browser)..."
 echo "Open the URL printed below in a browser to authenticate."
-echo "No browser on this machine? On your workstation run:" \
-     "ssh -L ${SAML_PORT}:127.0.0.1:${SAML_PORT} $(hostname)"
+echo "No browser on this machine? On your workstation run:"
+printf 'ssh -L %q %q\n' "${SAML_PORT}:127.0.0.1:${SAML_PORT}" "$SSH_HOST"
+echo "After connecting, detach with Ctrl+B, then D to keep the VPN running."
+echo "Return with: tmux attach -t vpn (or your existing tmux session)."
 echo
 
 exec sudo openfortivpn "${GATEWAY}:${PORT}" --saml-login="${SAML_PORT}"

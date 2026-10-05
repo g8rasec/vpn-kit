@@ -22,7 +22,7 @@ shopt -u nullglob
 echo "== [1/3] Dependencies (apt) =="
 sudo apt-get update -qq
 sudo apt-get install -y build-essential automake autoconf pkg-config \
-    libssl-dev ppp openvpn
+    libssl-dev ppp openvpn tmux
 
 echo "== [2/3] openfortivpn ${OPENFORTIVPN_VERSION} (vendored source) =="
 if command -v openfortivpn >/dev/null &&

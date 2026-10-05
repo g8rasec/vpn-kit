@@ -21,7 +21,7 @@ cp env.example .env   # then fill in the real values
 
 The installer:
 
-1. installs the dependencies (`build-essential`, `ppp`, `openvpn`, ...);
+1. installs the dependencies (`build-essential`, `ppp`, `openvpn`, `tmux`, ...);
 2. builds `openfortivpn` from the **source vendored in `third_party/`** — no
    external download; what gets installed is exactly the auditable code
    versioned in this repository (the version in Ubuntu's repositories is too
@@ -68,8 +68,20 @@ instructions if it is missing.
 ./vpn-corp.sh
 ```
 
-The script connects and prints a URL. Open it **in a browser** and complete
-the SSO login. Keep the terminal open — `Ctrl+C` disconnects.
+The script opens a `tmux` session named `vpn` (or attaches to it if it already
+exists). If you are already inside `tmux`, it uses your current session.
+It asks for the SSH host or alias you use **on your workstation**, such as
+`vpn-server` from `~/.ssh/config`, and uses it in the port-forwarding command.
+It then connects and prints a URL. Open it **in a browser** and complete
+the SSO login.
+
+After `Tunnel is up and running`, press **Ctrl+B**, release, then **D** to
+detach. You can close the terminal and the VPN keeps running on the server.
+To return, connect to the server and run `tmux attach -t vpn` (use your own
+session name if you started the script inside another tmux session).
+Press `Ctrl+C` inside the VPN session to disconnect. `tmux` preserves the
+terminal session; it does not automatically reconnect the VPN after a failure
+or server reboot.
 
 **On a server without a browser (headless):** the SSO login happens in your workstation's browser, through an SSH port-forward.
 
@@ -91,15 +103,20 @@ the SSO login. Keep the terminal open — `Ctrl+C` disconnects.
 
 1. On your workstation, open an auxiliary terminal and run:
    ```bash
-   ssh -L 8020:127.0.0.1:8020 <server-ip-or-host>
+   ssh -L 8020:127.0.0.1:8020 vpn-server
    ```
-   *(Tip: If hostname resolution fails, use the server's local IP address, e.g., `192.168.1.10`).*
+   Replace `vpn-server` with your SSH config alias, server address or IP.
+   Use the configured SAML port if it differs from `8020`.
 
-2. On the server, run `./vpn-corp.sh`. It will listen for SAML on port 8020 and print a login URL.
+2. On the server, run `./vpn-corp.sh` and enter the same SSH alias when prompted.
+   Inside tmux, it will listen for SAML on port 8020 and print a login URL.
 
 3. Copy that URL, open it in your workstation's browser, and complete the SSO authentication.
 
-4. Once the tunnel is established (`Tunnel is up and running`), the login token has been received and you can safely close the auxiliary SSH port-forwarding terminal.
+4. Once the tunnel is established (`Tunnel is up and running`), detach from
+   tmux with **Ctrl+B**, then **D**. You can then close the SSH terminal,
+   including the port-forwarding connection. Reopen the forwarding connection
+   if another SSO login is needed.
 
 
 
