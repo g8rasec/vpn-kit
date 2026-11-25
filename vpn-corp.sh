@@ -50,4 +50,8 @@ echo "After connecting, detach with Ctrl+B, then D to keep the VPN running."
 echo "Return with: tmux attach -t vpn (or your existing tmux session)."
 echo
 
-exec sudo openfortivpn "${GATEWAY}:${PORT}" --saml-login="${SAML_PORT}"
+# Hand the VPN DNS servers and search domains to systemd-resolved (through its
+# resolvconf compatibility) instead of overwriting /etc/resolv.conf. Programs
+# that ask systemd-resolved, such as containerd in K3s, then resolve the
+# internal names through the VPN; openfortivpn falls back when resolvconf is missing.
+exec sudo openfortivpn "${GATEWAY}:${PORT}" --saml-login="${SAML_PORT}" --use-resolvconf=1

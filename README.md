@@ -153,3 +153,10 @@ git rm -r third_party/openfortivpn-<old-version>
 - Both scripts use `sudo` (creating network interfaces requires root).
 - Both VPNs change routes and DNS — avoid connecting both at the same time
   unless you know what you are doing.
+- `vpn-corp.sh` passes `--use-resolvconf=1`, so the VPN DNS servers and search
+  domains go to systemd-resolved, bound to the `ppp0` interface. Without it,
+  openfortivpn rewrites `/etc/resolv.conf` directly: tools that read that file
+  (`curl`, `getent`) resolve the internal names, but systemd-resolved and the
+  programs that use it (containerd in K3s, for example) keep the public DNS and
+  get the public address. Check with `resolvectl query <internal-name>`: the
+  answer should come from `link: ppp0`.
